@@ -1,0 +1,62 @@
+# Mini GPT from Scratch
+
+A character-level GPT (decoder-only Transformer) built from scratch in PyTorch, following Andrej Karpathy's "Let's build GPT: from scratch, in code, spelled out". Trained on the Tiny Shakespeare dataset to generate Shakespeare-style text.
+
+## Architecture
+- Token embeddings + learned positional embeddings
+- Multi-head causal self-attention (scaled dot-product, masked so tokens cannot see the future)
+- Position-wise feed-forward network (4x expansion)
+- Residual connections and LayerNorm in every block
+- Final LayerNorm + linear head over the character vocabulary
+- Trained with cross-entropy loss and the AdamW optimizer
+
+**Model size:** 0.82M parameters (4 layers, 4 heads, 128-dim embeddings, context length 64)
+
+## Project structure
+```
+mini-gpt/
+├── gpt.py             # model, training loop, text generation
+├── download.py        # downloads the Tiny Shakespeare dataset
+├── input.txt          # dataset (created by download.py)
+├── requirements.txt
+└── README.md
+```
+
+## How to run
+```bash
+pip install torch
+python download.py
+python gpt.py
+```
+Training runs on CPU in roughly 35-40 minutes with the default settings. For better results on a GPU, increase `n_embd`, `n_layer`, `block_size` and `max_iters` at the top of `gpt.py`.
+
+## Results (CPU, 3000 steps)
+
+| Step | Train loss | Val loss |
+|------|-----------|----------|
+| 0    | 4.3354    | 4.3353   |
+| 500  | 1.9691    | 2.0315   |
+| 1000 | 1.7168    | 1.8710   |
+| 1500 | 1.6137    | 1.7725   |
+| 2000 | 1.5477    | 1.7168   |
+| 2500 | 1.5139    | 1.7094   |
+| 2999 | 1.4822    | 1.6902   |
+
+Sample generated text (the model has learned play structure, character names and Shakespeare-like word shapes, but it is a very small model, so the words are often not real):
+
+```
+PRINCE:
+Wivil men flet's apold den endoing ush'd the kingbrity's weep me shall of this ign years,
+Edward and flied intend, and ado
+```
+
+## What I learned
+- How self-attention works: queries, keys and values, scaling, and causal masking.
+- Why residual connections and LayerNorm make deeper Transformers trainable.
+- How to build a training pipeline: batching, train/validation split, loss estimation.
+- How loss relates to output quality, and how model size and context length affect results.
+
+## Future improvements
+- Replace the character-level tokenizer with BPE (e.g. `tiktoken`)
+- Train a larger model on a GPU
+- Train on a custom dataset such as Hindi or Marathi text
